@@ -7,9 +7,9 @@ Player::Player(b2World * world, SDL_Texture* tex){
 	myColIdent->baseClass = this;
 	myColIdent->className = "Player";
 	size = b2Vec2(64,64);
-	mBody = BodyFactory::createBody(world,b2Vec2(0,0),size,1,2,true,false,myColIdent);
+	mBody = BodyFactory::createBody(world,b2Vec2(200,50),size,0.01,2,true,false,myColIdent);
 	mBody->SetLinearDamping(0.01);
-
+	m_texture = tex;
 	myMass=new b2MassData();
 	mBody->GetMassData(myMass);
 
@@ -22,10 +22,10 @@ Player::~Player(void){
 
 void Player::Update(float timeElapsed){
 	if(KeyboardManager::instance()->IsKeyDown(KeyboardManager::LEFT)){
-		mBody->ApplyLinearImpulse(b2Vec2(-500,0),mBody->GetPosition(),true);
+		mBody->ApplyLinearImpulse(b2Vec2(-50,0),mBody->GetPosition(),true);
 	}
 	if(KeyboardManager::instance()->IsKeyDown(KeyboardManager::RIGHT)){
-		mBody->ApplyLinearImpulse(b2Vec2(500,0),mBody->GetPosition(),true);
+		mBody->ApplyLinearImpulse(b2Vec2(50,0),mBody->GetPosition(),true);
 	}
 }
 

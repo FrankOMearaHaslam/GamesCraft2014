@@ -247,14 +247,12 @@ int main( int argc, char* args[] )
 			mClock = std::clock();
 			while(!QUIT)
 			{
-
-			
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
 				{
 					SDL_RenderClear(renderer);
 
 					enemy->Update();//b2Vec2(0,0));
-
+					player->Update(std::clock()-mClock);
 					player->Draw(renderer);
 					water->Render(renderer);
 					enemy->Draw(renderer,b2Vec2(0,0));
