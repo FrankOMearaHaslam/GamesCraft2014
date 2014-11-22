@@ -1,12 +1,13 @@
 #include "Player.h"
 
 
-Player::Player(b2World * world)
-{
+Player::Player(b2World * world, SDL_Texture* tex){
+
 	myColIdent = new CollisionIdentifier();
 	myColIdent->baseClass = this;
 	myColIdent->className = "Player";
 	size = b2Vec2(64,64);
+
 	mBody = BodyFactory::createBody(world,b2Vec2(0,0),size,1,2,true,false,myColIdent);
 	mBody->SetLinearDamping(0.01);
 
@@ -17,35 +18,34 @@ Player::Player(b2World * world)
 }
 
 
-Player::~Player(void)
-{
+Player::~Player(void){
 }
 
-void Player::Update(float timeElapsed)
-{
-	
+void Player::Update(float timeElapsed){
+	if(KeyboardManager::instance()->IsKeyDown(KeyboardManager::LEFT)){
+		mBody->ApplyLinearImpulse(b2Vec2(-5,0),mBody->GetPosition(),true);
+	}
 }
 
-void Player::Draw(SDL_Renderer* gRenderer, b2Vec2 offset)
-{
+void Player::Draw(SDL_Renderer* gRenderer){
 	SDL_Rect stretchRect;
-	stretchRect.x =  mBody->GetPosition().x+offset.x-(size.x/2.0f);//centre of the screen//mBody->GetWorldCenter().x;
-	stretchRect.y =  mBody->GetPosition().y+offset.y-(size.y/2.0f);//centre of the screen// mBody->GetWorldCenter().y;
+	stretchRect.x =  mBody->GetPosition().x;//-(size.x/2.0f);//centre of the screen//mBody->GetWorldCenter().x;
+	stretchRect.y =  mBody->GetPosition().y;//-(size.y/2.0f);//centre of the screen// mBody->GetWorldCenter().y;
 	stretchRect.w = (size.x/1.0f);
 	stretchRect.h = (size.y/1.0f);
-	if(Left)
-	{
+	if(Left){
 		//SDL_RenderCopy ( gRenderer, TextureManager::getManager()->playerLeftTexture, NULL, &stretchRect);
 	}
-	else
-	{
+	else{
 		//SDL_RenderCopy ( gRenderer, TextureManager::getManager()->playerTexture, NULL, &stretchRect);
 	}
+	
+	SDL_RenderCopy(gRenderer,m_texture,NULL,&stretchRect);
 
 }
 
-b2Body* Player::GetBody()
-{
+b2Body* Player::GetBody(){
+
 	return mBody;
 }
 

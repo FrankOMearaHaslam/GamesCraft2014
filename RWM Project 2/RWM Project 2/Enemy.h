@@ -6,13 +6,17 @@
 
 class Enemy : BaseObject{
 public:
+
 	Enemy(b2World*, int, int, SDL_Texture* enemyTex);
+
 	b2Vec2 GetPosition();
 	b2Fixture* GetFixture();
 	void EnemyDeath(b2World*);
 	void Reset(b2World*, SDL_Renderer*);
 	void Draw(SDL_Renderer*, b2Vec2);
-	void Update();//b2Vec2 playerCentre);
+
+	void Update(b2Vec2 playerCentre);
+
 	b2Body* GetBody();
 private:
 	b2BodyDef myBodyDef;
@@ -29,6 +33,7 @@ private:
 	float mJumpForce;
 	float mSpeed;
 	int direction;
+
 
 };
 

@@ -94,7 +94,7 @@ void ContactListener::WaterStep(Water* water)
       float density = fixtureA->GetDensity();
   
       vector<b2Vec2> intersectionPoints;
-	 // vector<b2Vec2> intersectionPointsMushroom;
+
 	  if(density < 50)
 	  {
 			
@@ -106,7 +106,9 @@ void ContactListener::WaterStep(Water* water)
 				  b2Vec2 centroid = water->ComputeCentroid( intersectionPoints, area);
           
 				  //apply buoyancy stuff here...
+
 				   b2Vec2 gravity( 0, -9.81f );
+
   
 				  //apply buoyancy force (fixtureA is the fluid)
 				  float displacedMass = fixtureA->GetDensity() * area;
@@ -140,11 +142,12 @@ void ContactListener::WaterStep(Water* water)
 					  }  
 			  }
 		}
+
 		 ++it;
 	 }
+}
 	 
       
-  }
 
 
 

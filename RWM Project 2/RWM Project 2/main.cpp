@@ -35,6 +35,7 @@ SDL_Texture* loadTexture( std::string path );
 SDL_Event e;
 
 SDL_Texture* waterTex;
+
 SDL_Texture* enemyTexture;
 Water* water;
 Enemy* enemy;
@@ -47,6 +48,10 @@ b2BodyDef gFloorDef;
 b2PolygonShape gFloorShape;
 b2FixtureDef gFloorFixture;
 
+Player* player;
+SDL_Texture* playerTex;
+
+
 using namespace std;
 
 bool init() 
@@ -58,6 +63,7 @@ bool init()
 	stretchRect.y = 0; 
 	stretchRect.w = Game::SCREEN_WIDTH; 
 	stretchRect.h = Game::SCREEN_HEIGHT;
+
 
 	string* name = new string("ground");
 	gFloorDef.userData = name;
@@ -82,7 +88,7 @@ bool init()
             printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
             success = false;
 		}
-		
+
 		//Set texture filtering to linear
 		if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
 		{
@@ -118,6 +124,8 @@ bool init()
 			} 
 		}
 	} 
+
+
 
 
 	return success; 
@@ -156,7 +164,11 @@ bool loadMedia()
 	bool success = true; 
 
 	waterTex = loadTexture("images/waterTexture.png");
+
 	enemyTexture =  loadTexture("images/waterTexture.png");
+
+	playerTex = loadTexture("images/seesawBase.png");
+
 
 	//Load splash image 
 	return success; 
@@ -198,8 +210,13 @@ int main( int argc, char* args[] )
 		}
 		else
 		{
+
+			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
+			b2Vec2 gravity =  b2Vec2(0.0f,0.50f);
 			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
 			bool doSleep = true;
+			b2World* world = new b2World(gravity);
+
 			world->SetContactListener(ContactListener::createListener());
 			ContactListener::createListener()->setWorld(world);
 			game = Game(renderer,world);
@@ -208,24 +225,28 @@ int main( int argc, char* args[] )
 			//ObjectManager::getManager()->Initialise(world,&game);
 			createdWorld = true;
 			
+
 			enemy = new Enemy(world,100,600,enemyTexture);
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/4),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT/2,world,waterTex);
-			
+
+			player = new Player(world, playerTex);
+
 			std::clock_t mClock;
 			mClock = std::clock();
 			while(!QUIT)
 			{
+
 			
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
 				{
 					SDL_RenderClear(renderer);
 
-					enemy->Update();//b2Vec2(0,0));
+					enemy->Update(b2Vec2(0,0));
 
-
+					player->Draw(renderer);
 					water->Render(renderer);
 					enemy->Draw(renderer,b2Vec2(0,0));
-					enemy->Update();
+					//enemy->Update();
 					//KeyPresses::Update(e);
 					game.Update(std::clock()-mClock);
 					ContactListener::me->WaterStep(water);
@@ -233,6 +254,8 @@ int main( int argc, char* args[] )
 				}
 			
 				
+
+
 				SDL_RenderPresent(renderer);
 			}
 
