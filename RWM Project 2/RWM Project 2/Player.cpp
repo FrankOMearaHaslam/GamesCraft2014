@@ -13,7 +13,6 @@ Player::Player(b2World * world)
 	myMass=new b2MassData();
 	mBody->GetMassData(myMass);
 
-	Left=false;
 }
 
 
