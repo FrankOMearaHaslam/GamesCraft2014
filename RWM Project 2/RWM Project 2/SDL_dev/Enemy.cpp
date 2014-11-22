@@ -4,7 +4,7 @@ Enemy::Enemy(b2World* world, int x, int y,SDL_Texture* enemyTex) : m_angle(0.0f)
 	
 	b2Vec2 pos = b2Vec2(x, y);
 	size = b2Vec2(30, 30);
-	mJumpForce = 2000;
+	mJumpForce = 200;
 	mSpeed = 0.2f;
 
 	myColIdent = new CollisionIdentifier();
@@ -12,10 +12,12 @@ Enemy::Enemy(b2World* world, int x, int y,SDL_Texture* enemyTex) : m_angle(0.0f)
 	myColIdent->className = "Enemy";
 
 	dynamicBody = BodyFactory::createBody(world, pos, size, 4, 1, true, false, myColIdent);
+	
 	//dynamicBody->SetLinearDamping(0.01);
 	alive = true;
+
 	mTexture = enemyTex;
-	direction = 1;
+	direction = 0;
 
 }
 b2Body* Enemy::GetBody()
@@ -25,31 +27,28 @@ b2Body* Enemy::GetBody()
 void Enemy::Update()//b2Vec2 playerCentre)
 {
 	b2Vec2 pos = dynamicBody->GetPosition();
-	if(pos.x >= 0 && direction == 1)
+	if(pos.x <= 1280 && direction == 1)
 	{
-		dynamicBody->SetLinearVelocity(b2Vec2(max(-4.0f,dynamicBody->GetLinearVelocity().x-0.1f),dynamicBody->GetLinearVelocity().y));
+		dynamicBody->SetLinearVelocity(b2Vec2(max(3.0f,dynamicBody->GetLinearVelocity().x-0.1f),dynamicBody->GetLinearVelocity().y));
 	}
 	else
 	{
 		direction = 0;
-
 	}
-
-	if(pos.x <= 1280 && direction == 0)
+	if(pos.x >= 0 && direction == 0)
 	{
-		dynamicBody->SetLinearVelocity(b2Vec2(min(4.0f,dynamicBody->GetLinearVelocity().x+0.1f),dynamicBody->GetLinearVelocity().y));
+		dynamicBody->SetLinearVelocity(b2Vec2(min(-3.0f,dynamicBody->GetLinearVelocity().x+0.1f),dynamicBody->GetLinearVelocity().y));
 	}
 	else
 	{
-
 		direction = 1;
 	}
 
 
-	/*if(playerCentre.y < pos.y - 50 && dynamicBody->GetContactList())
-	{
-		dynamicBody->ApplyLinearImpulse(b2Vec2(0, -mJumpForce), dynamicBody->GetPosition(), true);
-	}*/
+//	if(playerCentre.y < pos.y - 50 && dynamicBody->GetContactList()) //this jumps at the player
+//	{
+	//	dynamicBody->ApplyLinearImpulse(b2Vec2(0, -mJumpForce), dynamicBody->GetPosition(), true);
+	//}
 	
 }
 

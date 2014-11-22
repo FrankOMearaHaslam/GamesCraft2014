@@ -2,17 +2,18 @@
 
 
 Player::Player(b2World * world, SDL_Texture* tex){
+
 	myColIdent = new CollisionIdentifier();
 	myColIdent->baseClass = this;
 	myColIdent->className = "Player";
 	size = b2Vec2(64,64);
-	mBody = BodyFactory::createBody(world,b2Vec2(300,50),size,0.1,1,true,false,myColIdent);
-	//mBody->SetLinearDamping(0.01);
+	mBody = BodyFactory::createBody(world,b2Vec2(0,0),size,1,2,true,false,myColIdent);
+	mBody->SetLinearDamping(0.01);
 
-	m_texture = tex;
 	myMass=new b2MassData();
 	mBody->GetMassData(myMass);
-	Left = false;
+
+	Left=false;
 }
 
 
@@ -46,6 +47,7 @@ void Player::Draw(SDL_Renderer* gRenderer){
 }
 
 b2Body* Player::GetBody(){
+
 	return mBody;
 }
 
