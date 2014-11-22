@@ -35,6 +35,8 @@ SDL_Texture* loadTexture( std::string path );
 SDL_Event e;
 
 SDL_Texture* waterTex;
+Player* player;
+SDL_Texture* playerTex;
 Water* water;
 
 using namespace std;
@@ -49,9 +51,6 @@ bool init()
 	stretchRect.w = Game::SCREEN_WIDTH; 
 	stretchRect.h = Game::SCREEN_HEIGHT;
 
-
-
-
 	//Initialize SDL 
 	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) 
 	{ 
@@ -65,7 +64,6 @@ bool init()
             printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
             success = false;
 		}
-		
 		//Set texture filtering to linear
 		if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
 		{
@@ -101,8 +99,6 @@ bool init()
 			} 
 		}
 	} 
-
-
 	return success; 
 }
 
@@ -139,6 +135,7 @@ bool loadMedia()
 	bool success = true; 
 
 	waterTex = loadTexture("images/waterTexture.png");
+	playerTex = loadTexture("images/seesawBase.png");
 
 	//Load splash image 
 	return success; 
@@ -194,18 +191,18 @@ int main( int argc, char* args[] )
 			createdWorld = true;
 			
 			water = new Water(400,400,200,200,world,waterTex);
-			
+			player = new Player(world, playerTex);
 			std::clock_t mClock;
 			mClock = std::clock();
 			while(!QUIT)
 			{
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
 				{
-
+					SDL_RenderClear(renderer);
+					player->Draw(renderer);
 					water->Render(renderer);
-					//KeyPresses::Update(e);
 					game.Update(std::clock()-mClock);
-					//ContactListener::me->WaterStep(new Water(0,0,400,400,world));
+					//ContactListener::me->WaterStep(new Water(400,400,200,200,world,waterTex));
 					mClock = std::clock();
 				}
 				SDL_RenderPresent(renderer);
