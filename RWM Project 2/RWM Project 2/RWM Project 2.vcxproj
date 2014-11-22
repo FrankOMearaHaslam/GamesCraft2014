@@ -123,6 +123,7 @@
     <ClCompile Include="CollisionIdentifier.cpp" />
     <ClCompile Include="ContactListener.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Fish.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="KeyboardManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="CollisionIdentifier.h" />
     <ClInclude Include="ContactListener.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Fish.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="KeyboardManager.h" />
     <ClInclude Include="Player.h" />

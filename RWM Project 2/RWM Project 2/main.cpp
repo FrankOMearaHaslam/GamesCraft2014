@@ -106,7 +106,7 @@ bool init()
 		{
 			printf( "Warning: Linear texture filtering not enabled!" );
 		}
-		window = SDL_CreateWindow( "Dr. Where", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::SCREEN_WIDTH, Game::SCREEN_HEIGHT, SDL_WINDOW_SHOWN ); 
+		window = SDL_CreateWindow( "Extreme Fishing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::SCREEN_WIDTH, Game::SCREEN_HEIGHT, SDL_WINDOW_SHOWN ); 
 		if( window == NULL )
 		{
 			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() ); 
@@ -177,9 +177,9 @@ bool loadMedia()
 
 	waterTex = loadTexture("images/waterTexture.png");
 
-	enemyTexture =  loadTexture("images/waterTexture.png");
+	enemyTexture =  loadTexture("images/sharkgreen.png");
 
-	playerTex = loadTexture("images/seesawBase.png");
+	playerTex = loadTexture("images/fisherman.png");
 
 
 	//Load splash image 
