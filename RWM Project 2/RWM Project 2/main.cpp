@@ -64,16 +64,28 @@ bool init()
 	stretchRect.w = Game::SCREEN_WIDTH; 
 	stretchRect.h = Game::SCREEN_HEIGHT;
 
-
-	string* name = new string("ground");
+	string* name = new string("Ground");
 	gFloorDef.userData = name;
 	gFloorDef.position.Set(0,Game::SCREEN_HEIGHT);
 	gFloorDef.type = b2_staticBody;	
 	gFloor = world->CreateBody(&gFloorDef);
 	gFloorShape.SetAsBox( Game::SCREEN_WIDTH, 2);
+	gFloorFixture.friction=0;
 	gFloorFixture.shape = &gFloorShape;
-	//boxFixture.density = 1;
+	gFloorFixture.density = 1;
 	gFloor->CreateFixture(&gFloorFixture);
+
+	/*
+	boxDef.userData = name;
+	boxDef.position.Set(x, y);
+	boxDef.type = type;	
+	box = world->CreateBody(&boxDef);
+	boxShape.SetAsBox( w / 2, h / 2);
+	boxFixture.friction = friction;
+	boxFixture.shape = &boxShape;
+	//boxFixture.density = 1;
+	box->CreateFixture(&boxFixture);
+	*/
 
 	//Initialize SDL 
 	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) 
@@ -212,10 +224,10 @@ int main( int argc, char* args[] )
 		{
 
 			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
-			b2Vec2 gravity =  b2Vec2(0.0f,0.50f);
+			//b2Vec2 gravity =  b2Vec2(0.0f,0.50f);
 			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
 			bool doSleep = true;
-			b2World* world = new b2World(gravity);
+			//b2World* world = new b2World(gravity);
 
 			world->SetContactListener(ContactListener::createListener());
 			ContactListener::createListener()->setWorld(world);
@@ -241,7 +253,7 @@ int main( int argc, char* args[] )
 				{
 					SDL_RenderClear(renderer);
 
-					enemy->Update(b2Vec2(0,0));
+					enemy->Update();//b2Vec2(0,0));
 
 					player->Draw(renderer);
 					water->Render(renderer);
@@ -252,9 +264,6 @@ int main( int argc, char* args[] )
 					ContactListener::me->WaterStep(water);
 					mClock = std::clock();
 				}
-			
-				
-
 
 				SDL_RenderPresent(renderer);
 			}
