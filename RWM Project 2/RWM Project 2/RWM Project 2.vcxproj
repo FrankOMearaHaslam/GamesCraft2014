@@ -124,10 +124,12 @@
     <ClCompile Include="ContactListener.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Fish.cpp" />
+    <ClCompile Include="FishingLine.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="KeyboardManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="RenderTexure.cpp" />
     <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -184,9 +186,11 @@
     <ClInclude Include="ContactListener.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Fish.h" />
+    <ClInclude Include="FishingLine.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="KeyboardManager.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Water.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

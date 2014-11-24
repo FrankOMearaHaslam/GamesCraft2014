@@ -15,7 +15,9 @@ public:
 	void Reset(b2World*, SDL_Renderer*);
 	void Draw(SDL_Renderer*, b2Vec2);
 
-	void Update();//b2Vec2 playerCentre);
+	void Update(b2Vec2 playerCentre);
+
+	bool attack;
 
 	b2Body* GetBody();
 private:
@@ -33,6 +35,7 @@ private:
 	float mJumpForce;
 	float mSpeed;
 	int direction;
+	
 
 
 };

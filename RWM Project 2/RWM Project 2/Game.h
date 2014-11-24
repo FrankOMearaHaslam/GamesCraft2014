@@ -7,8 +7,8 @@ using namespace std;
 class Game
 {
 public:
-	static const int SCREEN_WIDTH = 1280; 
-	static const int SCREEN_HEIGHT = 720;
+	static const int SCREEN_WIDTH = 1876; 
+	static const int SCREEN_HEIGHT = 1000;
 	static const int loopIterations = 1;
 	Game();
 	Game(SDL_Renderer* renderer,b2World* world);

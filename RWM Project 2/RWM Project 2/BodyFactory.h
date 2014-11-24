@@ -18,5 +18,9 @@ public:
 	static b2Body* createBody(b2World* world, b2Vec2 pos,b2Vec2 size,float density, float friction,
 								bool dynamic, bool sensor, bool rotatable, CollisionIdentifier* ColIdent);
 
+	static b2Body* createEnemy(b2World* world, b2Vec2 pos,b2Vec2 size,float density, float friction,
+								bool dynamic, bool rotatable, CollisionIdentifier* ColIdent);
+		static b2Body* createFish(b2World* world, b2Vec2 pos,b2Vec2 size,float density, float friction,
+								bool dynamic, bool sensor, bool rotatable, CollisionIdentifier* ColIdent);
 };
 

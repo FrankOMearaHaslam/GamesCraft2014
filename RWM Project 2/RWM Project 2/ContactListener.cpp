@@ -161,3 +161,35 @@ void ContactListener::setGame(Game* game)
 {
 	bGame=game;
 }
+
+
+void ContactListener::fishStep(Fish* fish,b2Body* bobber)
+{
+	//inside Step(), loop through all currently overlapping fixture pairs
+  set<fixturePair>::iterator it = m_fixturePairs.begin();
+  set<fixturePair>::iterator end = m_fixturePairs.end();
+  while (it != end) 
+  {
+      //fixtureA is the fluid
+      b2Fixture* fixtureA = it->first;
+      b2Fixture* fixtureB = it->second;
+
+      
+      float density = fixtureA->GetDensity();
+  
+      vector<b2Vec2> intersectionPoints;
+
+	 
+			if(fixtureB->GetBody() == bobber && fixtureA->GetBody() == fish->body)
+			{
+			  if (fish->findIntersectionOfFixtures(fixtureA, fixtureB, intersectionPoints) ) 
+			  {
+					fish->catchFish();
+			  }
+			}
+
+		 ++it;
+	 }
+}
+	 
+      

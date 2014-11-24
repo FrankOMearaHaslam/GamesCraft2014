@@ -5,6 +5,7 @@
 #include "Game.h"
 #include "Enemy.h"
 #include "Water.h"
+#include "Fish.h"
 using namespace std;
 class ContactListener: public b2ContactListener
 {
@@ -23,6 +24,8 @@ public:
 	~ContactListener(void);
 	void BeginContact(b2Contact* contact);
 	void EndContact(b2Contact* contact);
+
+	void fishStep(Fish* water,b2Body*);
 
 private:
 	void checkObject(CollisionIdentifier*);

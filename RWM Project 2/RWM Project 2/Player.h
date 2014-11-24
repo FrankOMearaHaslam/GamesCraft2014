@@ -17,7 +17,9 @@ public:
 	
 	b2Vec2 size;
 	bool Left;
+
 private:
+	
 	b2Body* mBody;
 	b2MassData* myMass;
 	SDL_Texture* m_texture;

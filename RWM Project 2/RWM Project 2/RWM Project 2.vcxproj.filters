@@ -58,6 +58,8 @@
     <ClCompile Include="Water.cpp" />
     <ClCompile Include="KeyboardManager.cpp" />
     <ClCompile Include="Fish.cpp" />
+    <ClCompile Include="FishingLine.cpp" />
+    <ClCompile Include="RenderTexure.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseObject.h" />
@@ -117,5 +119,7 @@
     <ClInclude Include="Water.h" />
     <ClInclude Include="KeyboardManager.h" />
     <ClInclude Include="Fish.h" />
+    <ClInclude Include="FishingLine.h" />
+    <ClInclude Include="RenderTexture.h" />
   </ItemGroup>
 </Project>
