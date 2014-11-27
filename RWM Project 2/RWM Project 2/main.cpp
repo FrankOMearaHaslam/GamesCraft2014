@@ -180,7 +180,7 @@ int worker( void* e ) {
 
 	//gData = rand() % 256;
 	threadEnemy->Draw(renderer, b2Vec2(0,0));
-
+	
 	//printf( "%s sets %d\n\n", e, gData );
 
 	//SDL_SemPost( gDataLock );
@@ -324,12 +324,9 @@ int main( int argc, char* args[] )
 						{
 							if(enemy->attack == false)
 							{
-
 								enemy->attack = true;
-
 							}
 						}
-
 					}
 					else if(random() == 68)
 					{
@@ -337,14 +334,10 @@ int main( int argc, char* args[] )
 						{
 							if(enemy2->attack == false)
 							{
-
 								enemy2->attack = true;
-
 							}
 						}
-
 					}
-
 					//enemy->Draw(renderer,b2Vec2(0,0));
 					//enemy2->Draw(renderer,b2Vec2(0,0));
 					for (int i = 0; i < 3; i++)
@@ -357,7 +350,6 @@ int main( int argc, char* args[] )
 					ContactListener::me->WaterStep(water);
 					mClock = std::clock();
 				}
-
 				SDL_RenderPresent(renderer);
 			}
 
