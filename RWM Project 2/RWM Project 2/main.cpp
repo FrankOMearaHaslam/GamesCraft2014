@@ -25,7 +25,11 @@ bool createdWorld = false;
 SDL_Rect stretchRect; 
 Game game;
 
+SDL_sem* gDataLock = NULL;
+int gData = -1;
 
+
+int worker( void* data );
 //Starts up SDL and creates window 
 bool init(); 
 //Loads media 
@@ -68,8 +72,10 @@ Mix_Chunk *gHigh = NULL;
 Mix_Chunk *gMedium = NULL;
 Mix_Chunk *gLow = NULL;
 
+
 bool init() 
 { 
+	gDataLock = SDL_CreateSemaphore( 1 );
 	//Initialization flag 
 	bool success = true; 
 
@@ -115,9 +121,9 @@ bool init()
 	else 
 	{  
 		if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 1024 ) < 0 )
-        {
-            printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
-            success = false;
+		{
+			printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+			success = false;
 		}
 
 		//Set texture filtering to linear
@@ -155,27 +161,32 @@ bool init()
 			} 
 		}
 	} 
-	 if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
 	{
 		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
 	music = Mix_LoadMUS( "images/audio.wav" );
-    if( music == NULL )
-    {
-        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
-    }
-	
-	//Play the music
-
-
-
-
-
+	if( music == NULL )
+	{
+		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+	}
 	return success; 
 }
+int worker( void* e ) { 
+	Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
+	//SDL_SemWait( gDataLock );
 
+	//printf( "%s gets %d\n", e, gData );
 
+	//gData = rand() % 256;
+	threadEnemy->Draw(renderer, b2Vec2(0,0));
 
+	//printf( "%s sets %d\n\n", e, gData );
+
+	//SDL_SemPost( gDataLock );
+
+	return 0; 
+} 
 SDL_Texture* loadTexture( std::string path ) 
 { 
 	//The final texture 
@@ -199,8 +210,6 @@ SDL_Texture* loadTexture( std::string path )
 	} 
 	return newTexture; 
 }
-
-
 bool loadMedia() 
 { 
 	//Loading success flag 
@@ -217,12 +226,6 @@ bool loadMedia()
 	//Load splash image 
 	return success; 
 }
-
-
-
-
-
-
 void close() 
 { 
 	//Free loaded image 
@@ -260,12 +263,9 @@ int main( int argc, char* args[] )
 		}
 		else
 		{
+			
 
-			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
-			//b2Vec2 gravity =  b2Vec2(0.0f,0.50f);
-			//b2Vec2 gravity =  b2Vec2(0.0f,0.0f);
 			bool doSleep = true;
-			//b2World* world = new b2World(gravity);
 
 			world->SetContactListener(ContactListener::createListener());
 			ContactListener::createListener()->setWorld(world);
@@ -274,11 +274,14 @@ int main( int argc, char* args[] )
 
 			//ObjectManager::getManager()->Initialise(world,&game);
 			createdWorld = true;
-			
+
 			Mix_PlayMusic( music, -1 );
 
 			enemy = new Enemy(world,100,600,enemyTexture);
 			enemy2 = new Enemy(world, 1200, 600, loanTex);
+			SDL_Thread* threadA = SDL_CreateThread( worker, "Thread A", (void*)enemy ); 
+			SDL_Delay( 16 + rand() % 32 ); 
+			SDL_Thread* threadB = SDL_CreateThread( worker, "Thread B", (void*)enemy2 );
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
 			for (int i = 0; i < 3; i++)
@@ -321,9 +324,9 @@ int main( int argc, char* args[] )
 						{
 							if(enemy->attack == false)
 							{
-							
+
 								enemy->attack = true;
-							
+
 							}
 						}
 
@@ -334,16 +337,16 @@ int main( int argc, char* args[] )
 						{
 							if(enemy2->attack == false)
 							{
-							
+
 								enemy2->attack = true;
-							
+
 							}
 						}
 
 					}
 
-					enemy->Draw(renderer,b2Vec2(0,0));
-					enemy2->Draw(renderer,b2Vec2(0,0));
+					//enemy->Draw(renderer,b2Vec2(0,0));
+					//enemy2->Draw(renderer,b2Vec2(0,0));
 					for (int i = 0; i < 3; i++)
 					{
 						fishes[i]->Draw(renderer);
@@ -358,7 +361,9 @@ int main( int argc, char* args[] )
 				SDL_RenderPresent(renderer);
 			}
 
-			
+			//Wait for threads to finish
+			SDL_WaitThread( threadA, NULL ); 
+			SDL_WaitThread( threadB, NULL );
 		}
 	}
 	close();
