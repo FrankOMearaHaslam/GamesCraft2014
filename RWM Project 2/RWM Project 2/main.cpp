@@ -27,9 +27,11 @@ Game game;
 
 SDL_sem* gDataLock = NULL;
 int gData = -1;
+bool QUIT = false;
 
 
-int worker( void* data );
+int DrawEnemy1( void* data );
+int DrawEnemy2( void* data );
 //Starts up SDL and creates window 
 bool init(); 
 //Loads media 
@@ -172,19 +174,25 @@ bool init()
 	}
 	return success; 
 }
-int worker( void* e ) { 
-	Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
-	//SDL_SemWait( gDataLock );
-
-	//printf( "%s gets %d\n", e, gData );
-
-	//gData = rand() % 256;
-	threadEnemy->Draw(renderer, b2Vec2(0,0));
-	
-	//printf( "%s sets %d\n\n", e, gData );
-
-	//SDL_SemPost( gDataLock );
-
+int DrawEnemy1( void* e ) {
+	//Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
+	while (!QUIT)
+	{
+		SDL_SemWait(gDataLock);
+		enemy->Draw(renderer, b2Vec2(0,0));
+		SDL_RenderPresent( renderer );
+		SDL_SemPost(gDataLock);
+	}
+	return 0; 
+} 
+int DrawEnemy2( void* e ) {
+	while (!QUIT)
+	{
+		SDL_SemWait(gDataLock);
+		enemy2->Draw(renderer, b2Vec2(0,0));
+		SDL_RenderPresent( renderer );
+		SDL_SemPost(gDataLock);
+	}
 	return 0; 
 } 
 SDL_Texture* loadTexture( std::string path ) 
@@ -249,7 +257,7 @@ int random()
 
 int main( int argc, char* args[] ) 
 { 
-	bool QUIT = false;
+	
 	if( !init() )
 	{ 
 		printf( "Failed to initialize!\n" ); 
@@ -279,9 +287,9 @@ int main( int argc, char* args[] )
 
 			enemy = new Enemy(world,100,600,enemyTexture);
 			enemy2 = new Enemy(world, 1200, 600, loanTex);
-			SDL_Thread* threadA = SDL_CreateThread( worker, "Thread A", (void*)enemy ); 
+			SDL_Thread* threadA = SDL_CreateThread( DrawEnemy1, "Thread A", (void*)0 ); 
 			SDL_Delay( 16 + rand() % 32 ); 
-			SDL_Thread* threadB = SDL_CreateThread( worker, "Thread B", (void*)enemy2 );
+			SDL_Thread* threadB = SDL_CreateThread( DrawEnemy2, "Thread B", (void*)1 );
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
 			for (int i = 0; i < 3; i++)
@@ -301,7 +309,6 @@ int main( int argc, char* args[] )
 					SDL_RenderClear(renderer);
 
 					enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
-
 					enemy2->Update(player->GetBody()->GetPosition());
 
 					player->Update(std::clock()-mClock);
