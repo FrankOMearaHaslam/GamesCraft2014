@@ -1,7 +1,7 @@
 #include "FishingLine.h"
 
 
-FishingLine::FishingLine(int x,int y,int width,int height,b2World* world,SDL_Renderer* render)
+FishingLine::FishingLine(int x,int y,int width,int height,b2World* world,SDL_Renderer* render, SDL_Texture* hang, SDL_Texture* line, SDL_Texture* hook)
 {
 	m_position.x = x;
 	m_position.y = y;
@@ -26,9 +26,10 @@ FishingLine::FishingLine(int x,int y,int width,int height,b2World* world,SDL_Ren
 	position2.h = 35;
 
 	createBody(world);
-			tHang = m_tHang.loadPNG("images/square.png", render);
-			tLine = m_tHang.loadPNG("images/Square.png", render);
-			tHook = m_tHang.loadPNG("images/seesawBase.png", render);
+
+	tHang = hang;
+	tLine = line;
+	tHook = hook;
 
 	
 }
@@ -58,7 +59,6 @@ void FishingLine::updatePosition(int x,int y,int width,int height,b2World*)
 	m_bodyHang->SetTransform(b2Vec2(m_position.x, m_position.y),0);
 	m_bodyHook->SetTransform(b2Vec2(m_position.x, m_bodyHook->GetPosition().y),0);
 	m_bodyHook->ApplyLinearImpulse(b2Vec2(0,100), m_bodyHook->GetWorldCenter(), true);
-	//m_bodyHook->SetTransform(b2Vec2(position2.x, position2.y),0);
 
 }
 
@@ -67,9 +67,9 @@ SDL_Rect FishingLine::getPosition()
 	return m_position;
 }
 
-b2Body* FishingLine::getLineBody()
+b2Body* FishingLine::getBody()
 {
-	return m_bodyHang;
+	return m_bodyHook;
 }
 
 float FishingLine::radian_to_degree(double radians)
@@ -154,9 +154,8 @@ void FishingLine::CreateDistanceJoint(b2World *world, b2Body* body1,  b2Body* bo
 	m_distanceJoint = (b2DistanceJoint*)world->CreateJoint( distanceJointDef );
 }
 
-void FishingLine::Update(float timeElapsed, SDL_Renderer* render,b2World* world)
+void FishingLine::Update(float timeElapsed)
 {
-
 	
 	if(KeyboardManager::instance()->IsKeyDown(KeyboardManager::DOWN)){
 

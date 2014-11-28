@@ -22,7 +22,7 @@ private:
 	RenderTexture m_tHook;
 
 	
-	b2Vec2 size;
+	//b2Vec2 size;
 	SDL_Rect position1;
 	SDL_Rect position2;
 
@@ -37,17 +37,17 @@ public:
 	SDL_Texture* tHook;
 	b2Body* m_bodyHook;
 	float m_impulse;
-	FishingLine(int x,int y,int width,int height,b2World*,SDL_Renderer*);
+
+public:
+	FishingLine(int x,int y,int width,int height,b2World*,SDL_Renderer*, SDL_Texture* hang, SDL_Texture* line, SDL_Texture* hook);
 
 	void updatePosition(int x,int y,int width,int height,b2World*);
 
-	void Update(float timeElapsed,SDL_Renderer* render,b2World* world);
+	void Update(float timeElapsed);
 
 	SDL_Rect getPosition();
 
-	void setPosition(b2Vec2 val);
-
-	b2Body* getLineBody();
+	b2Body* getBody();
 
 	float radian_to_degree(double radians);
 

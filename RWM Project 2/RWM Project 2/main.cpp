@@ -13,6 +13,9 @@
 #include "Fish.h"
 #include "FishingLine.h"
 
+#include "SDL_thread.h"
+#include <Windows.h>
+
 //Screen dimension constants 
 //The window we'll be rendering to 
 SDL_Window* window = NULL; 
@@ -25,7 +28,8 @@ bool createdWorld = false;
 SDL_Rect stretchRect; 
 Game game;
 
-
+bool loadSound();
+bool initStuff();
 //Starts up SDL and creates window 
 bool init(); 
 //Loads media 
@@ -41,6 +45,10 @@ SDL_Texture* waterTex;
 SDL_Texture* enemyTexture;
 
 SDL_Texture* fishTexture;
+
+SDL_Texture* hangTex;
+SDL_Texture* lineTex;
+SDL_Texture* hookTex;
 
 Water* water;
 Enemy* enemy;
@@ -67,6 +75,66 @@ Mix_Chunk *gScratch = NULL;
 Mix_Chunk *gHigh = NULL;
 Mix_Chunk *gMedium = NULL;
 Mix_Chunk *gLow = NULL;
+
+CRITICAL_SECTION  critical_sec;
+SDL_mutex *mutex;
+SDL_sem *semaphore = NULL;
+
+vector<SDL_Thread *>threads;
+
+int LoadMediaThread(void*ptr)
+{
+	bool bRet = 0;
+	
+	SDL_SemWait( semaphore );
+	//EnterCriticalSection(&critical_sec);
+	//if(SDL_LockMutex(mutex) == 0)
+
+	if((char*)ptr == "thread1")
+	{
+		bRet = (int) loadMedia();
+		printf( "\nRunning thread with value = %s\n", (char*)ptr );
+		SDL_Delay(16 + rand()%640);
+	}
+	else if((char*)ptr == "thread2")
+	{
+		bRet = (int) loadSound();
+		printf( "\nRunning thread with value = %s\n", (char*)ptr );
+		SDL_Delay(16 + rand()%640);
+	}
+
+	//}
+	//LeaveCriticalSection(&critical_sec);
+	//SDL_UnlockMutex(mutex);
+	SDL_SemPost( semaphore );
+
+	return bRet;
+}
+
+
+int InitStuffThread(void*ptr)
+{
+	
+	bool bRet = 0;
+	
+	SDL_SemWait( semaphore );
+	//EnterCriticalSection(&critical_sec);
+	//if(SDL_LockMutex(mutex) == 0)
+	{
+		bRet = (int) initStuff();
+		printf( "\nRunning thread with value = %s\n", (char*)ptr );
+		SDL_Delay(16 + rand()%640);
+	}
+
+	//LeaveCriticalSection(&critical_sec);
+	//SDL_UnlockMutex(mutex);
+	SDL_SemPost( semaphore );
+
+	return bRet;
+}
+
+
+
 
 bool init() 
 { 
@@ -159,13 +227,7 @@ bool init()
 	{
 		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
 	}
-	music = Mix_LoadMUS( "images/audio.wav" );
-    if( music == NULL )
-    {
-        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
-    }
 	
-	//Play the music
 
 
 
@@ -205,26 +267,59 @@ bool loadMedia()
 { 
 	//Loading success flag 
 	bool success = true; 
-
 	waterTex = loadTexture("images/waterTexture.png");
 
 	enemyTexture =  loadTexture("images/sharkgreen.png");
 	playerTex = loadTexture("images/fisherman.png");
 	loanTex = loadTexture("images/loanshark.png");
 	fishTexture = loadTexture("images/fish1pink.png");
-
+	hangTex = loadTexture("images/square.png");
+	lineTex = loadTexture("images/square.png");
+	hookTex = loadTexture("images/seesawBase.png");
 
 	//Load splash image 
 	return success; 
 }
 
+bool initStuff()
+{
+	bool success = true;
+	enemy = new Enemy(world,100,600,enemyTexture);
+	enemy2 = new Enemy(world, 1200, 600, loanTex);
+	water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
+
+	for (int i = 0; i < 3; i++)
+	{
+		fishes.push_back(new Fish(600*i,water->getBody()->GetPosition().y - Game::SCREEN_HEIGHT/4 + 120 + 80*i,100,100,world,fishTexture,1, i));
+	}
+	player = new Player(world, playerTex);
+
+	fishingLine = new FishingLine(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world,renderer, hangTex, lineTex, hookTex);
+
+	return success;
+}
 
 
+bool loadSound()
+{
+	bool success = true;
 
+	music = Mix_LoadMUS( "images/audio.wav" );
+    if( music == NULL )
+    {
+        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
+	
+	//Play the music
+
+	return success;
+}
 
 
 void close() 
 { 
+	SDL_DestroyMutex(mutex);
+	SDL_DestroySemaphore(semaphore);
 	//Free loaded image 
 	//Destroy window 
 	SDL_DestroyRenderer( renderer ); 
@@ -246,16 +341,72 @@ int random()
 
 int main( int argc, char* args[] ) 
 { 
-	
+	SDL_Thread *thread1 = nullptr;
+	SDL_Thread *thread2 = nullptr;
+	SDL_Thread *thread3;
+	threads.push_back(thread1);
+	threads.push_back(thread1);
+	int m_loadMedid;
+
+
 	bool QUIT = false;
 	if( !init() )
 	{ 
 		printf( "Failed to initialize!\n" ); 
 	} 
 	else 
-	{ 
+	{
+		mutex = SDL_CreateMutex();
+		semaphore = SDL_CreateSemaphore( 1 ); 
+		InitializeCriticalSection(&critical_sec);
+
+		if (!mutex)
+		{
+			printf("Couldn't create mutex");
+			return 0;
+		}
+		
+		//thread1 = SDL_CreateThread(LoadMediaThread,"LoadMediaThread1",(void*)"thread1");
+		//thread2 = SDL_CreateThread(LoadMediaThread,"LoadMediaThread2",(void*)"thread2");
+		
+
+		threads.at(0) = SDL_CreateThread(LoadMediaThread,"LoadMediaThread",(void*)"thread1");
+		threads.at(1) = SDL_CreateThread(LoadMediaThread,"LoadSoundThread",(void*)"thread2");
+
+		for(int i = 0; i < 2; i++)
+		{
+			if(threads.at(i) == NULL)
+			printf("\nSDL_CreateThread failed: %s\n",SDL_GetError());
+			else
+			{
+				SDL_WaitThread(threads.at(i),&m_loadMedid);
+				printf("\nThread1 returned value: %d", m_loadMedid);
+			}
+		}
+
+
+/*		thread1 = SDL_CreateThread(LoadMediaThread,"LoadMediaThread1",(void*)"thread1");
+		if(thread1 == NULL)
+			printf("\nSDL_CreateThread failed: %s\n",SDL_GetError());
+		else
+		{
+			SDL_WaitThread(thread1,&m_loadMedid);
+			printf("\nThread1 returned value: %d", m_loadMedid);
+		}
+
+		thread2 = SDL_CreateThread(LoadMediaThread,"LoadMediaThread2",(void*)"thread2");
+		if(thread2 == NULL)
+			printf("\nSDL_CreateThread failed: %s\n",SDL_GetError());
+		else
+		{
+			SDL_WaitThread(thread2,&m_loadMedid);
+			printf("\nThread2 returned value: %d", m_loadMedid);
+		}
+
+*/
+
 		//Load media 
-		if( !loadMedia() )	
+		if( /*!loadMedia() */m_loadMedid == 0)	
 		{
 			printf( "Failed to load media!\n" );
 		}
@@ -277,18 +428,19 @@ int main( int argc, char* args[] )
 			createdWorld = true;
 			
 			Mix_PlayMusic( music, -1 );
+			
 
-			enemy = new Enemy(world,100,600,enemyTexture);
-			enemy2 = new Enemy(world, 1200, 600, loanTex);
-			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
+			//Thread3 for initialse stuff
+			threads.push_back(SDL_CreateThread(InitStuffThread,"InitStuffThread",(void*)"thread3"));
 
-			for (int i = 0; i < 3; i++)
+			if(threads.at(2) == NULL)
+			printf("\nSDL_CreateThread failed: %s\n",SDL_GetError());
+			else
 			{
-				fishes.push_back(new Fish(600*i,water->getBody()->GetPosition().y - Game::SCREEN_HEIGHT/4 + 120 + 80*i,100,100,world,fishTexture,1, i));
+				SDL_WaitThread(threads.at(2),&m_loadMedid);
+				printf("\nThread1 returned value: %d", m_loadMedid);
 			}
-			player = new Player(world, playerTex);
 
-			fishingLine = new FishingLine(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world,renderer);
 
 			std::clock_t mClock;
 			mClock = std::clock();
@@ -311,7 +463,7 @@ int main( int argc, char* args[] )
 
 					fishingLine->updatePosition(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world);
 					fishingLine->Render(renderer);
-					fishingLine->Update(std::clock()-mClock, renderer, world);
+					fishingLine->Update(std::clock()-mClock);
 
 					player->Draw(renderer);
 					water->Render(renderer);
