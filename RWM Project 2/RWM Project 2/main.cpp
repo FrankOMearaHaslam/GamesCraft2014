@@ -251,45 +251,41 @@ int random()
 	return randomGen;
 }
 
-static int drawPlayer(void* data){
+static int drawEntinties(void* data){
 	while(true){
 		SDL_SemWait(gDataLock);
-		SDL_RenderClear(renderer);
-		player->Draw(renderer);
-		SDL_RenderPresent(renderer);
-		SDL_SemPost(gDataLock);
-	}
-
-	return 0;
-}
-
-static int drawFish(void* data){
-	while(true){
-		SDL_SemWait(gDataLock);
+		SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
 		SDL_RenderClear(renderer);
 		for (int i = 0; i < 3; i++)
 		{
 			fishes[i]->Draw(renderer);
 		}
-		SDL_RenderPresent(renderer);
-		SDL_SemPost(gDataLock);
-	}
-
-	return 0;
-}
-
-static int drawSharks(void* data){
-	while(true){
-		SDL_SemWait(gDataLock);
-		SDL_RenderClear(renderer);
+		player->Draw(renderer);
 		enemy->Draw(renderer,b2Vec2(0,0));
 		enemy2->Draw(renderer,b2Vec2(0,0));
+		fishingLine->Render(renderer);
+		//SDL_RenderPresent(renderer);
+		SDL_SemPost(gDataLock);
+	}
+
+	return 0;
+}
+
+
+static int drawWater(void* data){
+	while(true){
+		SDL_SemWait(gDataLock);
+		//SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+		//SDL_RenderClear(renderer);
+		water->Render(renderer);
 		SDL_RenderPresent(renderer);
 		SDL_SemPost(gDataLock);
 	}
 
 	return 0;
 }
+
+
 
 int main( int argc, char* args[] ) 
 { 
@@ -339,16 +335,13 @@ int main( int argc, char* args[] )
 			std::clock_t mClock;
 			mClock = std::clock();
 
-			SDL_Thread* threadA = SDL_CreateThread( drawFish, "Thread 1", (void*)NULL );
-			SDL_Thread* threadB = SDL_CreateThread( drawPlayer, "Thread 2", (void*)NULL );
-			SDL_Thread* threadC = SDL_CreateThread( drawSharks, "Thread 3", (void*)NULL );
+			SDL_Thread* threadA = SDL_CreateThread( drawEntinties, "Thread 1", (void*)NULL );
+			SDL_Thread* threadB = SDL_CreateThread( drawWater, "Thread 2", (void*)NULL );
 
 			while(!QUIT)
 			{
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
 				{
-					SDL_RenderClear(renderer);
-
 					enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
 
 					enemy2->Update(player->GetBody()->GetPosition());
@@ -361,11 +354,11 @@ int main( int argc, char* args[] )
 					}
 
 					fishingLine->updatePosition(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world);
-					fishingLine->Render(renderer);
+					
 					fishingLine->Update(std::clock()-mClock, renderer, world);
 
 
-					water->Render(renderer);
+					
 
 					if(random() == 2)
 					{
@@ -402,12 +395,10 @@ int main( int argc, char* args[] )
 					mClock = std::clock();
 				}
 
-				SDL_RenderPresent(renderer);
 			}
 
 			SDL_WaitThread( threadA, NULL );
 			SDL_WaitThread( threadB, NULL );
-			SDL_WaitThread( threadC, NULL );
 		}
 	}
 	close();
