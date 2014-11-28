@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <SDL_thread.h>
 #include <string>
 #include <iostream>
 #include <ctime>
@@ -67,6 +68,12 @@ Mix_Chunk *gScratch = NULL;
 Mix_Chunk *gHigh = NULL;
 Mix_Chunk *gMedium = NULL;
 Mix_Chunk *gLow = NULL;
+
+//Data access semaphore
+SDL_sem* gDataLock = NULL;
+
+//The "data buffer"
+int gData = -1;
 
 bool init() 
 { 
@@ -206,6 +213,8 @@ bool loadMedia()
 	//Loading success flag 
 	bool success = true; 
 
+	gDataLock = SDL_CreateSemaphore( 1 );
+
 	waterTex = loadTexture("images/waterTexture.png");
 
 	enemyTexture =  loadTexture("images/sharkgreen.png");
@@ -242,7 +251,45 @@ int random()
 	return randomGen;
 }
 
+static int drawPlayer(void* data){
+	while(true){
+		SDL_SemWait(gDataLock);
+		SDL_RenderClear(renderer);
+		player->Draw(renderer);
+		SDL_RenderPresent(renderer);
+		SDL_SemPost(gDataLock);
+	}
 
+	return 0;
+}
+
+static int drawFish(void* data){
+	while(true){
+		SDL_SemWait(gDataLock);
+		SDL_RenderClear(renderer);
+		for (int i = 0; i < 3; i++)
+		{
+			fishes[i]->Draw(renderer);
+		}
+		SDL_RenderPresent(renderer);
+		SDL_SemPost(gDataLock);
+	}
+
+	return 0;
+}
+
+static int drawSharks(void* data){
+	while(true){
+		SDL_SemWait(gDataLock);
+		SDL_RenderClear(renderer);
+		enemy->Draw(renderer,b2Vec2(0,0));
+		enemy2->Draw(renderer,b2Vec2(0,0));
+		SDL_RenderPresent(renderer);
+		SDL_SemPost(gDataLock);
+	}
+
+	return 0;
+}
 
 int main( int argc, char* args[] ) 
 { 
@@ -291,6 +338,11 @@ int main( int argc, char* args[] )
 
 			std::clock_t mClock;
 			mClock = std::clock();
+
+			SDL_Thread* threadA = SDL_CreateThread( drawFish, "Thread 1", (void*)NULL );
+			SDL_Thread* threadB = SDL_CreateThread( drawPlayer, "Thread 2", (void*)NULL );
+			SDL_Thread* threadC = SDL_CreateThread( drawSharks, "Thread 3", (void*)NULL );
+
 			while(!QUIT)
 			{
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
@@ -312,7 +364,7 @@ int main( int argc, char* args[] )
 					fishingLine->Render(renderer);
 					fishingLine->Update(std::clock()-mClock, renderer, world);
 
-					player->Draw(renderer);
+
 					water->Render(renderer);
 
 					if(random() == 2)
@@ -334,20 +386,15 @@ int main( int argc, char* args[] )
 						{
 							if(enemy2->attack == false)
 							{
-							
+
 								enemy2->attack = true;
-							
+
 							}
 						}
 
 					}
 
-					enemy->Draw(renderer,b2Vec2(0,0));
-					enemy2->Draw(renderer,b2Vec2(0,0));
-					for (int i = 0; i < 3; i++)
-					{
-						fishes[i]->Draw(renderer);
-					}
+
 					//enemy->Update();
 					//KeyPresses::Update(e);
 					game.Update(std::clock()-mClock);
@@ -358,10 +405,13 @@ int main( int argc, char* args[] )
 				SDL_RenderPresent(renderer);
 			}
 
-			
+			SDL_WaitThread( threadA, NULL );
+			SDL_WaitThread( threadB, NULL );
+			SDL_WaitThread( threadC, NULL );
 		}
 	}
 	close();
+
 	return 0;
 }
 
