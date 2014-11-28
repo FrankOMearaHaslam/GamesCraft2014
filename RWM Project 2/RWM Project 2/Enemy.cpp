@@ -33,7 +33,6 @@ void Enemy::Update(b2Vec2 playerCentre)
 	else
 	{
 		direction = 0;
-
 	}
 
 	if(pos.x <= 1876 && direction == 0)

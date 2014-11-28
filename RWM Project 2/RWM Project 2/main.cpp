@@ -178,20 +178,24 @@ int DrawEnemy1( void* e ) {
 	//Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
 	while (!QUIT)
 	{
+		//SDL_RenderClear(renderer);
 		SDL_SemWait(gDataLock);
 		enemy->Draw(renderer, b2Vec2(0,0));
 		SDL_RenderPresent( renderer );
 		SDL_SemPost(gDataLock);
+		//SDL_RenderClear(renderer);
 	}
 	return 0; 
 } 
 int DrawEnemy2( void* e ) {
 	while (!QUIT)
 	{
+		
 		SDL_SemWait(gDataLock);
 		enemy2->Draw(renderer, b2Vec2(0,0));
 		SDL_RenderPresent( renderer );
 		SDL_SemPost(gDataLock);
+		//SDL_RenderClear(renderer);
 	}
 	return 0; 
 } 
@@ -287,9 +291,9 @@ int main( int argc, char* args[] )
 
 			enemy = new Enemy(world,100,600,enemyTexture);
 			enemy2 = new Enemy(world, 1200, 600, loanTex);
-			SDL_Thread* threadA = SDL_CreateThread( DrawEnemy1, "Thread A", (void*)0 ); 
+			SDL_Thread* threadA = SDL_CreateThread( DrawEnemy1, "Enemy 1", (void*)0 ); 
 			SDL_Delay( 16 + rand() % 32 ); 
-			SDL_Thread* threadB = SDL_CreateThread( DrawEnemy2, "Thread B", (void*)1 );
+			SDL_Thread* threadB = SDL_CreateThread( DrawEnemy2, "Enemy2", (void*)1 );
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
 			for (int i = 0; i < 3; i++)
@@ -327,7 +331,7 @@ int main( int argc, char* args[] )
 
 					if(random() == 2)
 					{
-						if(enemy->GetPosition().y > 900)
+						if(enemy->GetPosition().y > 800)
 						{
 							if(enemy->attack == false)
 							{
@@ -337,7 +341,7 @@ int main( int argc, char* args[] )
 					}
 					else if(random() == 68)
 					{
-						if(enemy2->GetPosition().y > 900)
+						if(enemy2->GetPosition().y > 800)
 						{
 							if(enemy2->attack == false)
 							{
