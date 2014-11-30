@@ -1,5 +1,6 @@
 #pragma once
 #include "Box2D\Box2D.h"
+#include <windows.system.h>
 #include "CollisionIdentifier.h"
 #include "Player.h"
 #include "Game.h"
@@ -18,6 +19,7 @@ public:
 	b2World* bWorld;
 	static ContactListener* me;
 	static ContactListener* createListener();
+	void initialize();
 	void setWorld(b2World* world);
 	void setGame(Game* game);
 	ContactListener(void);
@@ -26,6 +28,12 @@ public:
 	void EndContact(b2Contact* contact);
 
 	void fishStep(Fish* water,b2Body*);
+
+   
+	SDL_sem* gDataLock;
+	
+	
+
 
 private:
 	void checkObject(CollisionIdentifier*);

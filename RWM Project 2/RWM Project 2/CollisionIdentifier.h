@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 using namespace std;
 class BaseObject;
@@ -9,6 +10,8 @@ public:
 	BaseObject* baseClass;
 	CollisionIdentifier(void);
 	~CollisionIdentifier(void);
+
+	
 };
 
 

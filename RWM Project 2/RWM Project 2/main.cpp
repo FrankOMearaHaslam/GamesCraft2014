@@ -12,6 +12,7 @@
 #include "Enemy.h"
 #include "Fish.h"
 #include "FishingLine.h"
+#include <SDL_thread.h>
 
 //Screen dimension constants 
 //The window we'll be rendering to 
@@ -67,6 +68,18 @@ Mix_Chunk *gScratch = NULL;
 Mix_Chunk *gHigh = NULL;
 Mix_Chunk *gMedium = NULL;
 Mix_Chunk *gLow = NULL;
+
+std::clock_t mClock;
+
+//Threading
+SDL_Thread* waterThread;
+SDL_Thread* waterThread2;
+int dataThread;
+bool threadInit = true;
+//Data access semaphore
+SDL_sem* gDataLock = NULL;
+
+
 
 bool init() 
 { 
@@ -145,6 +158,7 @@ bool init()
 				//Initialize renderer color 
 				SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF ); 
 				//Initialize PNG loading 
+
 				int imgFlags = IMG_INIT_PNG; 
 				if( !( IMG_Init( imgFlags ) & imgFlags  ) ) 
 				{ 
@@ -164,15 +178,11 @@ bool init()
     {
         printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
     }
-	
-	//Play the music
-
-
-
-
 
 	return success; 
 }
+
+
 
 
 
@@ -203,9 +213,11 @@ SDL_Texture* loadTexture( std::string path )
 
 bool loadMedia() 
 { 
+
+	
 	//Loading success flag 
 	bool success = true; 
-
+	gDataLock = SDL_CreateSemaphore( 1 );
 	waterTex = loadTexture("images/waterTexture.png");
 
 	enemyTexture =  loadTexture("images/sharkgreen.png");
@@ -219,14 +231,15 @@ bool loadMedia()
 }
 
 
-
-
-
-
 void close() 
 { 
 	//Free loaded image 
 	//Destroy window 
+
+	 //Free semaphore
+    SDL_DestroySemaphore( gDataLock );
+    gDataLock = NULL;
+
 	SDL_DestroyRenderer( renderer ); 
 	SDL_DestroyWindow( window ); 
 	window = NULL; 
@@ -242,7 +255,45 @@ int random()
 	return randomGen;
 }
 
+static int threadFunction( void* data )
+{
 
+   while(true)
+   {
+   		SDL_SemWait( gDataLock );
+		player->Update(std::clock()-mClock);
+		enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
+		enemy2->Update(player->GetBody()->GetPosition());
+		if(random() == 2)
+		{
+			if(enemy->GetPosition().y > 900)
+			{
+				if(enemy->attack == false)
+				{
+							
+					enemy->attack = true;
+							
+				}
+			}
+
+		}
+		else if(random() == 68)
+		{
+			if(enemy2->GetPosition().y > 900)
+			{
+				if(enemy2->attack == false)
+				{
+							
+					enemy2->attack = true;
+							
+				}
+			}
+		}
+		SDL_SemPost( gDataLock );
+   }
+   
+   return 0;
+}
 
 int main( int argc, char* args[] ) 
 { 
@@ -271,7 +322,8 @@ int main( int argc, char* args[] )
 			ContactListener::createListener()->setWorld(world);
 			game = Game(renderer,world);
 			ContactListener::createListener()->setGame(&game);
-
+			//ContactListener::createListener()->initialize();
+			
 			//ObjectManager::getManager()->Initialise(world,&game);
 			createdWorld = true;
 			
@@ -281,6 +333,9 @@ int main( int argc, char* args[] )
 			enemy2 = new Enemy(world, 1200, 600, loanTex);
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
+			
+			//waterThread2 = SDL_CreateThread(threadFunction, "Thread B" , (void*)"Thread B"  );
+
 			for (int i = 0; i < 3; i++)
 			{
 				fishes.push_back(new Fish(600*i,water->getBody()->GetPosition().y - Game::SCREEN_HEIGHT/4 + 120 + 80*i,100,100,world,fishTexture,1, i));
@@ -289,62 +344,39 @@ int main( int argc, char* args[] )
 
 			fishingLine = new FishingLine(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world,renderer);
 
-			std::clock_t mClock;
+		
 			mClock = std::clock();
+			//SDL_Thread* ThreadA = SDL_CreateThread(threadFunction, "Thread A" , (void*)NULL  );
+			//SDL_Thread* ThreadB = SDL_CreateThread(threadFunction, "Thread B" , (void*)NULL  );
+			vector<SDL_Thread*> updateThreads;
+
+			int threadAmount = 10;
+			for (int i = 0; i < threadAmount; i++)
+			{
+				SDL_Thread* Threads = SDL_CreateThread(threadFunction, "Thread A" + i, (void*)NULL  );
+				updateThreads.push_back(Threads);
+			}
+
 			while(!QUIT)
 			{
 				if(((std::clock()-mClock)/(double)CLOCKS_PER_SEC) >= 1.0/480.0)
 				{
 					SDL_RenderClear(renderer);
-
-					enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
-
-					enemy2->Update(player->GetBody()->GetPosition());
-
-					player->Update(std::clock()-mClock);
 					for (int i = 0; i < 3; i++)
 					{
 						fishes[i]->Update();
 						ContactListener::me->fishStep(fishes[i],fishingLine->m_bodyHook);
 					}
-
+					
 					fishingLine->updatePosition(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world);
 					fishingLine->Render(renderer);
 					fishingLine->Update(std::clock()-mClock, renderer, world);
 
 					player->Draw(renderer);
 					water->Render(renderer);
-
-					if(random() == 2)
-					{
-						if(enemy->GetPosition().y > 900)
-						{
-							if(enemy->attack == false)
-							{
-							
-								enemy->attack = true;
-							
-							}
-						}
-
-					}
-					else if(random() == 68)
-					{
-						if(enemy2->GetPosition().y > 900)
-						{
-							if(enemy2->attack == false)
-							{
-							
-								enemy2->attack = true;
-							
-							}
-						}
-
-					}
-
 					enemy->Draw(renderer,b2Vec2(0,0));
 					enemy2->Draw(renderer,b2Vec2(0,0));
-					for (int i = 0; i < 3; i++)
+					for (int i = 0; i < fishes.size(); i++)
 					{
 						fishes[i]->Draw(renderer);
 					}
@@ -354,10 +386,13 @@ int main( int argc, char* args[] )
 					ContactListener::me->WaterStep(water);
 					mClock = std::clock();
 				}
-
 				SDL_RenderPresent(renderer);
 			}
-
+			for (int i = 0; i < updateThreads.size(); i++)
+			{
+				SDL_WaitThread( updateThreads.at(i), NULL );
+			}
+			
 			
 		}
 	}

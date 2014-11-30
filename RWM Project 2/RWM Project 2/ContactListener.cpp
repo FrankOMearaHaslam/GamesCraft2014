@@ -7,15 +7,16 @@ ContactListener* ContactListener::createListener()
 {
 	if(me == NULL)
 	{
-		me = new ContactListener();
+	   me = new ContactListener();
+		//Run the thread
 	}
+
 	return me;
 }
 
 ContactListener::ContactListener(void)
 {
 }
-
 
 ContactListener::~ContactListener(void)
 {
@@ -44,6 +45,8 @@ void ContactListener::checkObject(CollisionIdentifier* ident)
 
 void ContactListener::BeginContact(b2Contact* contact)
 {
+	//Lock
+    
 	bool looking = true;
     b2Fixture* fixtureA = contact->GetFixtureA();
     b2Fixture* fixtureB = contact->GetFixtureB();
@@ -68,6 +71,9 @@ void ContactListener::BeginContact(b2Contact* contact)
 
 	checkObject(body2Ident);
 
+	//Unlock
+    
+
 }
 void ContactListener::EndContact(b2Contact* contact)
 {
@@ -79,6 +85,8 @@ void ContactListener::EndContact(b2Contact* contact)
     else if ( fixtureB->IsSensor() && fixtureA->GetBody()->GetType() == b2_dynamicBody )
         m_fixturePairs.erase( make_pair(fixtureB, fixtureA) );
 }
+
+
 
 void ContactListener::WaterStep(Water* water)
 {
