@@ -3,11 +3,13 @@
 
 #include "Box2D\Box2D.h"
 #include "BaseObject.h"
+#include "Player.h"
+#include <SDL_dev/SDL2-2.0.3/include/SDL_thread.h>
 
 class Enemy : BaseObject{
 public:
 
-	Enemy(b2World*, int, int, SDL_Texture* enemyTex);
+	Enemy(b2World*, int, int, SDL_Texture* enemyTex, Player* play);
 
 	b2Vec2 GetPosition();
 	b2Fixture* GetFixture();
@@ -15,7 +17,7 @@ public:
 	void Reset(b2World*, SDL_Renderer*);
 	void Draw(SDL_Renderer*, b2Vec2);
 
-	void Update(b2Vec2 playerCentre);
+	void Update();
 
 	bool attack;
 
@@ -35,8 +37,7 @@ private:
 	float mJumpForce;
 	float mSpeed;
 	int direction;
-	
-
+	Player* player;
 
 };
 

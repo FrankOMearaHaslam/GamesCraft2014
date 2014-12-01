@@ -12,6 +12,7 @@
 #include "Enemy.h"
 #include "Fish.h"
 #include "FishingLine.h"
+#include <SDL_dev/SDL2-2.0.3/include/SDL_thread.h>
 
 //Screen dimension constants 
 //The window we'll be rendering to 
@@ -68,6 +69,13 @@ Mix_Chunk *gHigh = NULL;
 Mix_Chunk *gMedium = NULL;
 Mix_Chunk *gLow = NULL;
 
+SDL_Thread *thread;
+SDL_Thread *thread2;
+static SDL_mutex* mut;
+static int SharkThread(void *ptr);
+static int SharkThread2(void *ptr);
+std::clock_t mClock;
+SDL_sem* sem;
 bool init() 
 { 
 	//Initialization flag 
@@ -277,8 +285,6 @@ int main( int argc, char* args[] )
 			
 			Mix_PlayMusic( music, -1 );
 
-			enemy = new Enemy(world,100,600,enemyTexture);
-			enemy2 = new Enemy(world, 1200, 600, loanTex);
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
 			for (int i = 0; i < 3; i++)
@@ -286,10 +292,15 @@ int main( int argc, char* args[] )
 				fishes.push_back(new Fish(600*i,water->getBody()->GetPosition().y - Game::SCREEN_HEIGHT/4 + 120 + 80*i,100,100,world,fishTexture,1, i));
 			}
 			player = new Player(world, playerTex);
+			enemy = new Enemy(world,100,600,enemyTexture,player);
+			enemy2 = new Enemy(world, 1200, 600, loanTex, player);
+			sem = SDL_CreateSemaphore( 1 );
+			thread = SDL_CreateThread(SharkThread, "TestThread", (void *)NULL);
+			thread2 = SDL_CreateThread(SharkThread2, "TestThread2", (void *)NULL);
 
 			fishingLine = new FishingLine(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world,renderer);
 
-			std::clock_t mClock;
+			
 			mClock = std::clock();
 			while(!QUIT)
 			{
@@ -297,9 +308,9 @@ int main( int argc, char* args[] )
 				{
 					SDL_RenderClear(renderer);
 
-					enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
+					//enemy->Update(player->GetBody()->GetPosition());//b2Vec2(0,0));
 
-					enemy2->Update(player->GetBody()->GetPosition());
+					//enemy2->Update(player->GetBody()->GetPosition());
 
 					player->Update(std::clock()-mClock);
 					for (int i = 0; i < 3; i++)
@@ -307,7 +318,8 @@ int main( int argc, char* args[] )
 						fishes[i]->Update();
 						ContactListener::me->fishStep(fishes[i],fishingLine->m_bodyHook);
 					}
-
+					//enemy->Update();
+					//enemy2->Update();
 					fishingLine->updatePosition(player->GetBody()->GetPosition().x + 225, player->GetBody()->GetPosition().y - 75, 10, 10, world);
 					fishingLine->Render(renderer);
 					fishingLine->Update(std::clock()-mClock, renderer, world);
@@ -317,7 +329,7 @@ int main( int argc, char* args[] )
 
 					if(random() == 2)
 					{
-						if(enemy->GetPosition().y > 900)
+						if(enemy->GetPosition().y > 600)
 						{
 							if(enemy->attack == false)
 							{
@@ -330,7 +342,7 @@ int main( int argc, char* args[] )
 					}
 					else if(random() == 68)
 					{
-						if(enemy2->GetPosition().y > 900)
+						if(enemy2->GetPosition().y > 600)
 						{
 							if(enemy2->attack == false)
 							{
@@ -365,3 +377,19 @@ int main( int argc, char* args[] )
 	return 0;
 }
 
+static int SharkThread(void *ptr)
+{
+	while(true){
+		SDL_SemWait( sem );
+		enemy->Update();//b2Vec2(0,0));
+		SDL_SemPost( sem );
+	}
+}
+static int SharkThread2(void *ptr)
+{
+	while(true){
+		SDL_SemWait( sem );
+		enemy2->Update();
+		SDL_SemPost( sem );
+	}
+}
