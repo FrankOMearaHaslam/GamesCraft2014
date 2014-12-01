@@ -30,8 +30,7 @@ int gData = -1;
 bool QUIT = false;
 
 
-int DrawEnemy1( void* data );
-int DrawEnemy2( void* data );
+int DrawEnemy( void* data );
 //Starts up SDL and creates window 
 bool init(); 
 //Loads media 
@@ -174,31 +173,18 @@ bool init()
 	}
 	return success; 
 }
-int DrawEnemy1( void* e ) {
-	//Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
-	while (!QUIT)
-	{
-		//SDL_RenderClear(renderer);
+int DrawEnemy( void* e ) {
+	Enemy* threadEnemy = reinterpret_cast <Enemy*> (e);
+	while (!QUIT){
 		SDL_SemWait(gDataLock);
-		enemy->Draw(renderer, b2Vec2(0,0));
+		threadEnemy->Draw(renderer, b2Vec2(0,0));
 		SDL_RenderPresent( renderer );
 		SDL_SemPost(gDataLock);
 		//SDL_RenderClear(renderer);
 	}
 	return 0; 
 } 
-int DrawEnemy2( void* e ) {
-	while (!QUIT)
-	{
-		
-		SDL_SemWait(gDataLock);
-		enemy2->Draw(renderer, b2Vec2(0,0));
-		SDL_RenderPresent( renderer );
-		SDL_SemPost(gDataLock);
-		//SDL_RenderClear(renderer);
-	}
-	return 0; 
-} 
+
 SDL_Texture* loadTexture( std::string path ) 
 { 
 	//The final texture 
@@ -291,9 +277,9 @@ int main( int argc, char* args[] )
 
 			enemy = new Enemy(world,100,600,enemyTexture);
 			enemy2 = new Enemy(world, 1200, 600, loanTex);
-			SDL_Thread* threadA = SDL_CreateThread( DrawEnemy1, "Enemy 1", (void*)0 ); 
+			SDL_Thread* threadA = SDL_CreateThread( DrawEnemy, "Enemy 1", (void*)enemy ); 
 			SDL_Delay( 16 + rand() % 32 ); 
-			SDL_Thread* threadB = SDL_CreateThread( DrawEnemy2, "Enemy2", (void*)1 );
+			SDL_Thread* threadB = SDL_CreateThread( DrawEnemy, "Enemy2", (void*)enemy2 );
 			water = new Water(Game::SCREEN_WIDTH/2,(Game::SCREEN_HEIGHT-Game::SCREEN_HEIGHT/3),Game::SCREEN_WIDTH,Game::SCREEN_HEIGHT-(Game::SCREEN_HEIGHT/3),world,waterTex);
 
 			for (int i = 0; i < 3; i++)
