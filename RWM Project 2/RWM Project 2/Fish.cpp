@@ -24,22 +24,28 @@ Fish::Fish(int x,int y, int w, int h,b2World* world,SDL_Texture* texture, int di
 
 Fish::~Fish(void)
 {
+
 }
 
 
-void Fish::Update(){
-	body->SetTransform(b2Vec2(body->GetPosition().x + dirVel, body->GetPosition().y),0);
-	if((body->GetPosition().x + (size.x/2)) >= 1876){
+void Fish::Update()
+{
+	/*body->SetTransform(b2Vec2(body->GetPosition().x + dirVel, body->GetPosition().y),0);
+	if((body->GetPosition().x + (size.x/2)) >= 1876)
+	{
 		dirVel = -1;
 	}
-	if(body->GetPosition().x - (size.x/2) <= 0){
+	if(body->GetPosition().x - (size.x/2) <= 0)
+	{
 		dirVel = 1;
-	}
+	}*/
 }
+
 void Fish::catchFish()
 {
 	caught = true;
 }
+
 void Fish::Draw(SDL_Renderer* gRenderer){
 	if(caught == false)
 	{
